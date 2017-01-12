@@ -68,47 +68,6 @@ public class StackWalkerTest {
     public static void main(String[] args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         StackWalkerTest stackWalkerTest = new StackWalkerTest();
 
-        Runnable defaultOptions = () -> {
-            StackWalker
-                    .getInstance()
-                    .forEach(StackWalkerTest::printFrame);
-
-        };
-
-        Runnable redlectOption = () -> {
-            StackWalker
-                    .getInstance(Set.of(
-                            StackWalker.Option.SHOW_REFLECT_FRAMES))
-                    .forEach(StackWalkerTest::printFrame);
-
-        };
-        Runnable hiddenOptions = () -> {
-            StackWalker
-                    .getInstance(Set.of(
-                            StackWalker.Option.SHOW_HIDDEN_FRAMES))
-                    .forEach(StackWalkerTest::printFrame);
-
-        };
-
-        System.out.println("------");
-        stackWalkerTest.stack1(defaultOptions);
-
-        System.out.println("------");
-        stackWalkerTest.stack1(redlectOption);
-
-        System.out.println("------");
-        stackWalkerTest.stack1(hiddenOptions);
-
-
-        System.out.println("------");
-        stackWalkerTest.stack1(() -> {
-                    StackTraceElement[] stackTrace = new Exception().getStackTrace();
-                    for (int i = 0; i < stackTrace.length; i++) {
-                        System.out.println("stackTrace = " + stackTrace[i]);
-
-                    }
-        }
-        );
 
         stackWalkerTest.stack1(() -> {
                 List<String> m = StackWalker
@@ -129,9 +88,4 @@ public class StackWalkerTest {
         );
 
     }
-
-    private static void printFrame(StackFrame stackFrame) {
-        System.out.println(stackFrame.getClass() + " : " + stackFrame.getClassName() + "." + stackFrame.getMethodName() + "(" + stackFrame.getFileName() + ":" + stackFrame.getLineNumber() + ")" + "bci:" + stackFrame.getByteCodeIndex() + ", " + stackFrame.isNativeMethod());
-    }
-
 }
