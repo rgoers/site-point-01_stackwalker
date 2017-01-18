@@ -30,7 +30,7 @@ StackWalkerVsExceptionBenchmark.stackWalkerForEachToStackTraceElement  avgt   20
     @Benchmark
     public void exceptionStackTrace(Blackhole b) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         STACK_WALKER_TEST.stack1(() -> {
-            for(StackTraceElement e : new Exception().getStackTrace())
+            for(StackTraceElement e : new Throwable().getStackTrace())
                 b.consume(e);
         });
     }

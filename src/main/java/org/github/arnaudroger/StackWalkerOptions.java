@@ -1,5 +1,7 @@
 package org.github.arnaudroger;
 
+import java.util.Arrays;
+
 public class StackWalkerOptions {
 
     public static void method1(Runnable r) throws Exception {
@@ -19,6 +21,9 @@ public class StackWalkerOptions {
 
         System.out.println("---- SHOW_HIDDEN_FRAMES StackWalker----");
         method1(() -> StackWalker.getInstance(StackWalker.Option.SHOW_HIDDEN_FRAMES).forEach(System.out::println));
+
+        System.out.println("---- Exception ---");
+        method1(() -> Arrays.stream(new Throwable().getStackTrace()).forEach(System.out::println));
     }
 
 }
