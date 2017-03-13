@@ -16,3 +16,10 @@ To get more help on the jmh command line arguments:
 ```bash
 java -jar target/benchmarks.jar -help
 ```
+Results on my MacBook Pro:
+
+    Benchmark                                        Mode  Cnt   Score   Error  Units
+    ExceptionBenchmark.exceptionStackTrace           avgt   20  19.796 ± 0.405  us/op
+    StackWalkerGetCallerClass.exceptionGetImmediate  avgt   20   0.135 ± 0.002  us/op
+    StackWalkerGetCallerClass.reflectionSearch       avgt   20   3.844 ± 0.057  us/op
+    StackWalkerGetCallerClass.securityManager        avgt   20   0.949 ± 0.013  us/op
