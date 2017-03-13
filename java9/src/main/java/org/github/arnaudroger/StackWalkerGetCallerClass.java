@@ -12,8 +12,11 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.infra.Blackhole;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.StackWalker.StackFrame;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BinaryOperator;
 
 
 @State(Scope.Benchmark)
@@ -28,10 +31,19 @@ StackWalkerGetCallerClass.securityManager      avgt   20  1.840 ± 0.033  us/op
  */
 public class StackWalkerGetCallerClass {
     static MySecurityManager securityManager = new MySecurityManager();
+    private final static StackWalkerTest STACK_WALKER_TEST = new StackWalkerTest();
+
     @Benchmark
-    public Object exceptionStackTrace() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public Object stackwalkerGetImmediate() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass();
 
+    }
+
+    @Benchmark
+    public Optional<StackFrame> stackwalkerSearch() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        StackWalker walker = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+        ClassComparator comparator = new ClassComparator();
+        return walker.walk(s -> s.reduce(comparator));
     }
 
     @Benchmark
@@ -45,8 +57,28 @@ public class StackWalkerGetCallerClass {
         }
     }
 
-    public static void main(String[] args) {
+    public static class ClassComparator implements BinaryOperator<StackFrame> {
+        private boolean next = false;
+
+        public StackFrame apply(StackFrame found, StackFrame element) {
+            if (found != null) {
+                return found;
+            }
+            if ("org.github.arnaudroger.StackWalkerTest".equals(element.getClassName())) {
+                next = true;
+                return found;
+            } else if (next) {
+                return element;
+            }
+            return found;
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
         System.out.println(Arrays.toString(securityManager.p_getClassContext()));
+        StackWalkerGetCallerClass clazz = new StackWalkerGetCallerClass();
+        Optional<StackFrame> optional = clazz.stackwalkerSearch();
+        System.out.println(optional.orElse(null));
     }
 
 }
