@@ -3,12 +3,6 @@ If you want to run them you will need to:
 
 * install Java 8
 * point the JAVA_HOME environment variable to the jdk 8 directory
-
-  ```bash
-  wget https://archive.apache.org/dist/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.tar.gz
-  tar xzvf apache-maven-3.2.5-bin.tar.gz
-  ```
-
 * Build and run the benchmarks :
 
   ```bash
