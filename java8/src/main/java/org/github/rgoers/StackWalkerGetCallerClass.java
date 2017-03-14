@@ -73,7 +73,7 @@ public class StackWalkerGetCallerClass {
 
     @Benchmark
     public Object exceptionGetImmediate() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        return sun.reflect.Reflection.getCallerClass(1 + JDK_7u25_OFFSET);
+        return sun.reflect.Reflection.getCallerClass(2 + JDK_7u25_OFFSET);
 
     }
 

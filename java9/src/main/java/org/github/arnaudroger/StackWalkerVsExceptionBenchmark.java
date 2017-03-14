@@ -9,7 +9,9 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.infra.Blackhole;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 
 @State(Scope.Benchmark)
@@ -26,6 +28,9 @@ StackWalkerVsExceptionBenchmark.stackWalkerForEachToStackTraceElement  avgt   20
      */
 
     private final static StackWalkerTest STACK_WALKER_TEST = new StackWalkerTest();
+    private final static StackWalker walker = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+    private final static StackWalker walker2 = StackWalker.getInstance();
+    private final static ClassPredicate finder = new ClassPredicate();
 
     @Benchmark
     public void exceptionStackTrace(Blackhole b) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
@@ -36,17 +41,53 @@ StackWalkerVsExceptionBenchmark.stackWalkerForEachToStackTraceElement  avgt   20
     }
 
     @Benchmark
+    public void stackwalkerStackTrace(Blackhole b) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        final Mutable mutable = new Mutable();
+        STACK_WALKER_TEST.stack1(() -> mutable.setStackFrame(walker2.walk(s -> s.filter(finder).findFirst())));
+        b.consume(mutable.getStackFrame().get().toStackTraceElement());
+    }
+
+    static final class ClassPredicate implements Predicate<StackWalker.StackFrame> {
+
+        private boolean next = true;
+
+        @Override
+        public boolean test(StackWalker.StackFrame f) {
+            if ("org.github.arnaudroger.StackWalkerTest".equals(f.getClassName())) {
+                next = true;
+                return false;
+            } else if (next) {
+                next = false;
+                return true;
+            }
+            return true;
+        }
+    }
+
+    @Benchmark
     public void stackWalkerForEach(Blackhole b) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        STACK_WALKER_TEST.stack1(() -> StackWalker.getInstance().forEach(b::consume));
+        STACK_WALKER_TEST.stack1(() -> walker2.forEach(b::consume));
     }
 
     @Benchmark
     public void stackWalkerForEachRetainClass(Blackhole b) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        STACK_WALKER_TEST.stack1(() -> StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).forEach(b::consume));
+        STACK_WALKER_TEST.stack1(() -> walker.forEach(b::consume));
     }
 
     @Benchmark
     public void stackWalkerForEachToStackTraceElement(Blackhole b) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        STACK_WALKER_TEST.stack1(() -> StackWalker.getInstance().forEach(f -> b.consume(f.toStackTraceElement())));
+        STACK_WALKER_TEST.stack1(() -> walker2.forEach(f -> b.consume(f.toStackTraceElement())));
+    }
+
+    private static class Mutable {
+        private Optional<StackWalker.StackFrame> stackFrame = Optional.empty();
+
+        public Optional<StackWalker.StackFrame> getStackFrame() {
+            return stackFrame;
+        }
+
+        public void setStackFrame(Optional<StackWalker.StackFrame> stackFrame) {
+            this.stackFrame = stackFrame;
+        }
     }
 }
